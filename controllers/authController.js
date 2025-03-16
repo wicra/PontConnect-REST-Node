@@ -55,6 +55,9 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
 
+    // CREATION DU TOKEN JWT POUR LA CONNEXION
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     res.json({ message: 'Connexion réussie', token });
   } catch (error) {
     console.error(error);
