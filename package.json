@@ -18,6 +18,7 @@
   "homepage": "https://github.com/wicra/PontConnect-REST-Node#readme",
   "description": "",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mysql2": "^3.13.0",
     "nodemon": "^3.1.9"
