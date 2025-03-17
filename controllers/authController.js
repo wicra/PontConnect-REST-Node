@@ -12,16 +12,16 @@ export const register = async (req, res) => {
 
   try {
     // VERIFICATION DE L'EXISTENCE DE L'UTILISATEUR
-    const [rows] = await db.execute('SELECT id FROM users WHERE email = ?', [email]);
+    const [rows] = await db.execute('SELECT USER_ID FROM users WHERE EMAIL = ?', [email]);
     if (rows.length > 0) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
 
     // HASHAGE DU MOT DE PASSE
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = createHash('sha256').update(password).digest('hex');
 
     // INSERTION DE L'UTILISATEUR
-    await db.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
+    await db.execute('INSERT INTO users (USER_NAME, EMAIL, PASSWORD, TYPE_USER_ID, CREATED_AT) VALUES (?, ?, ?, ?, NOW())', [name, email, hashedPassword, 2]);
 
     res.status(201).json({ message: 'Utilisateur créé avec succès' });
   } catch (error) {
