@@ -1,5 +1,8 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+// CHARGEMENT DES VARIABLES D'ENVIRONNEMENT
+dotenv.config("../.env");
 
 // CONNEXION A LA BASE DE DONNEES
 const connection = await mysql.createConnection({
@@ -11,4 +14,4 @@ const connection = await mysql.createConnection({
     charset: process.env.DB_CHARSET
 });
 
-module.exports = connection;
+export default connection;

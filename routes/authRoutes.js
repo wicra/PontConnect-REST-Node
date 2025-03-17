@@ -1,5 +1,5 @@
-const express = require('express');
-const { register, login } = require('../controllers/authController');
+import express from 'express';
+import { register, login } from '../controllers/authController.js'; // Utilisation de l'import pour authController
 
 // VARIABLES DE ROUTAGE
 const router = express.Router();
@@ -9,4 +9,4 @@ router.post('/register', register);
 router.post('/login', login);
 
 // EXPORTATION DU MODULE
-module.exports = router;
+export default router;
