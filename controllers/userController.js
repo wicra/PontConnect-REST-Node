@@ -70,3 +70,57 @@ export const GetAllAvailabilities = async (req, res) => {
         });
     }
 };
+
+// FONCTION POUR RÉCUPÉRER LES VALEURS DES CAPTEURS
+export const GetSensorValues = async (req, res) => {
+    try {
+
+      // REQUÊTE POUR RÉCUPÉRER LES VALEURS COMMUNES DES PONTS
+      const queryGlobal = `
+        SELECT CAPTEUR_ID, LIBELLE_CAPTEUR, VALEUR_CAPTEUR 
+        FROM CAPTEURS 
+        WHERE CAPTEUR_ID IN (1, 2)
+      `; // 1: TEMPERATURE, 2: HUMIDITE
+      
+      const [globalSensors] = await db.query(queryGlobal);
+      
+      // CRÉATION D'UN OBJET POUR STOCKER LES VALEURS GLOBALES
+      const global = {};
+      globalSensors.forEach(sensor => {
+        global[sensor.CAPTEUR_ID] = sensor.VALEUR_CAPTEUR;
+      });
+      
+      // REQUÊTE POUR RÉCUPÉRER LES PONTS AVEC LEURS VALEURS DE CAPTEURS ASSOCIÉS
+      const queryPonts = `
+        SELECT 
+          p.PONT_ID, 
+          p.LIBELLE_PONT, 
+          (SELECT c.VALEUR_CAPTEUR FROM CAPTEURS c WHERE c.CAPTEUR_ID = p.CAPTEUR_ID) AS NIVEAU_EAU,
+          (SELECT c.DATE_AJOUT FROM CAPTEURS c WHERE c.CAPTEUR_ID = p.CAPTEUR_ID) AS DATE_AJOUT
+        FROM PONTS p
+        ORDER BY p.PONT_ID
+      `;
+      
+      const [ponts] = await db.query(queryPonts);
+      
+      // AJOUT DES VALEURS GLOBALES AUX PONTS
+      ponts.forEach(p => {
+        p.HUMIDITE = global[1] || null;
+        p.TEMPERATURE = global[2] || null;
+      });
+      
+      // ENVOI DE LA RÉPONSE DE SUCCÈS AVEC LES DONNÉES
+      return res.status(200).json({
+        success: true,
+        ponts: ponts
+      });
+      
+    } catch (error) {
+      console.error("Erreur lors de la récupération des capteurs:", error.message);
+      return res.status(500).json({
+        success: false,
+        message: "Erreur: " + error.message
+      });
+    }
+};
+
