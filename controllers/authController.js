@@ -1,9 +1,8 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('../models/db');
+import { createHash } from 'crypto';
+import db from '../models/db.js';
 
 // FONCTIONS POUR L'INSCRIPTION
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
   // VERIFICATION DES CHAMPS
@@ -22,7 +21,7 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // INSERTION DE L'UTILISATEUR
-    const [result] = await db.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
+    await db.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name, email, hashedPassword]);
 
     res.status(201).json({ message: 'Utilisateur créé avec succès' });
   } catch (error) {
@@ -32,35 +31,47 @@ exports.register = async (req, res) => {
 };
 
 // FONCTION POUR LA CONNEXION
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
+
+  // RECUPERATION DES CHAMPS
   const { email, password } = req.body;
 
   // VERIFICATION DES CHAMPS
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email et mot de passe requis' });
+    return res.status(400).json({ message: "Email et mot de passe requis" });
   }
 
   try {
-    // RECHERCHE DE L'UTILISATEUR
-    const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+    // RECUPERATION DE L'UTILISATEUR
+    const [rows] = await db.execute('SELECT * FROM USERS WHERE EMAIL = ?', [email]);
     if (rows.length === 0) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
     const user = rows[0];
 
-    // VERIFICATION DU MOT DE PASSE
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+    // COMPARAISON DES MOTS DE PASSE
+    const hashedPassword = createHash('sha256').update(password).digest('hex');
+
+    if (hashedPassword !== user.PASSWORD) {
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
-    // CREATION DU TOKEN JWT POUR LA CONNEXION
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // DATE DE DERNIERE CONNEXION
+    await db.execute('UPDATE USERS SET LAST_SIGN = NOW() WHERE USER_ID = ?', [user.USER_ID]);
 
-    res.json({ message: 'Connexion réussie', token });
+    // RETOUR DE L'UTILISATEUR
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user.USER_ID,
+        name: user.USER_NAME,
+        email: user.EMAIL,
+        type_user_id: user.TYPE_USER_ID
+      }
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error("Erreur serveur:", error);
+    return res.status(500).json({ message: "Erreur serveur" });
   }
 };
