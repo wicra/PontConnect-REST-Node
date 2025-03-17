@@ -1,20 +1,21 @@
 import express from 'express';
-import dotenv from 'dotenv';
+import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
-
-// CHARGEMENT DES VARIABLES D'ENVIRONNEMENT
-dotenv.config();
+import userRoutes from './routes/userRoutes.js';
 
 // CREATION DE L'APPLICATION EXPRESS
 const app = express();
 
-// POUR PARSER LE JSON
+// MIDDLEWARES
 app.use(express.json());
+app.use(cors());
 
-// ROUTES DE L'AUTHENTIFICATION
+// LES ROUTES
 app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 
-const PORT = process.env.PORT || 3000;
+// DEMARRAGE DU SERVEUR
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 })
