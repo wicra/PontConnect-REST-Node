@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 // CHARGEMENT DES VARIABLES D'ENVIRONNEMENT
-dotenv.config("../.env");
+dotenv.config("../../.env");
 
 // CONNEXION A LA BASE DE DONNEES
 const connection = await mysql.createConnection({

@@ -25,12 +25,14 @@ L'API est conçue pour fonctionner avec une base de données MySQL et s'intègre
 ## Installation du projet
 
 ### Étape 1 : Clonage du projet
+
 ```bash
 git clone https://github.com/wicra/PontConnect-REST-Node.git
 cd PontConnect-REST-Node
 ```
 
 ### Étape 2 : Installation des dépendances
+
 ```bash
 npm install
 ```
@@ -42,16 +44,18 @@ Créez ou mettez à jour le fichier `.env` à la racine du projet avec les varia
 ### Étape 4 : Démarrer la base de données avec Docker
 
 Lancez le conteneur Docker pour la base de données MySQL et phpMyAdmin avec la commande suivante :
+
 ```bash
 docker-compose -f compose.db.yaml up -d
 ```
 
 **Remarque :**
- 
+
 - Cette commande construit et démarre le conteneur Docker avec les images nécessaires pour MySQL et phpMyAdmin.
 - Accédez à phpMyAdmin via Docker Desktop en cliquant sur le lien fourni.
- 
+
 **Identifiants par défaut :**
+
 - **Utilisateur :** `root`
 - **Mot de passe :** `root`
 - **Serveur :** `db`
