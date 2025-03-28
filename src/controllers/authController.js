@@ -1,7 +1,10 @@
 import { createHash } from 'crypto';
 import db from '../models/db.js';
 
-// FONCTIONS POUR L'INSCRIPTION
+` ╔═════════════════════════════════════════════╗
+  ║          FONCTIONS POUR L'INSCRIPTION       ║
+  ╚═════════════════════════════════════════════╝
+`
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -33,7 +36,10 @@ export const register = async (req, res) => {
   }
 };
 
-// FONCTION POUR LA CONNEXION
+` ╔═════════════════════════════════════════════╗
+  ║          FONCTIONS POUR LA CONNEXION        ║
+  ╚═════════════════════════════════════════════╝
+`
 export const login = async (req, res) => {
 
   // RECUPERATION DES CHAMPS

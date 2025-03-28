@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login } from '../controllers/authController.js'; // Utilisation de l'import pour authController
+import { register, login } from '../controllers/authController.js';
 
 // VARIABLES DE ROUTAGE
 const router = express.Router();

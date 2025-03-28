@@ -21,9 +21,5 @@ router.post('/updateReservationStatus', updateReservationStatus);
 router.get('/getCreneaux', getCreneaux);
 router.post('/reserveCreneau', reserveCreneau);
 
-` ╔═════════════════════════╗
-  ║     ROUTES DE L'ADMIN   ║
-  ╚═════════════════════════╝`
-
 // EXPORTATION DU MODULE
 export default router;
