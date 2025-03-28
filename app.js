@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './src/routes/authRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
+import adminRoutes from './src/routes/adminRoutes.js';
 
 // CREATION DE L'APPLICATION EXPRESS
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 // LES ROUTES
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
+app.use('/admin', adminRoutes);
 
 // DEMARRAGE DU SERVEUR
 const PORT = 3000;
