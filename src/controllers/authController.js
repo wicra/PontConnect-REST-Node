@@ -15,7 +15,7 @@ export const register = async (req, res) => {
 
   try {
     // VERIFICATION DE L'EXISTENCE DE L'UTILISATEUR
-    const [rows] = await db.execute('SELECT USER_ID FROM users WHERE EMAIL = ?', [email]);
+    const [rows] = await db.execute('SELECT USER_ID FROM USERS WHERE EMAIL = ?', [email]);
     if (rows.length > 0) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
