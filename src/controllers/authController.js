@@ -24,7 +24,7 @@ export const register = async (req, res) => {
     const hashedPassword = createHash('sha256').update(password).digest('hex');
 
     // INSERTION DE L'UTILISATEUR
-    await db.execute('INSERT INTO users (USER_NAME, EMAIL, PASSWORD, TYPE_USER_ID, CREATED_AT) VALUES (?, ?, ?, ?, NOW())', [name, email, hashedPassword, 2]);
+    await db.execute('INSERT INTO USERS (USER_NAME, EMAIL, PASSWORD, TYPE_USER_ID, CREATED_AT) VALUES (?, ?, ?, ?, NOW())', [name, email, hashedPassword, 2]);
 
     res.status(201).json({ 
       success: true,
