@@ -226,13 +226,13 @@ export const deleteBoat = async (req, res) => {
     try {
       // REQUÊTE SQL POUR SUPPRIMER LES RÉSERVATIONS ASSOCIÉES AU BATEAU
       await db.execute(
-        "DELETE FROM reservation WHERE BATEAU_ID = ?", 
+        "DELETE FROM RESERVATION WHERE BATEAU_ID = ?", 
         [boatId]
       );
 
       // REQUÊTE SQL POUR SUPPRIMER LE BATEAU AVEC VÉRIFICATION DE L'UTILISATEUR
       const [result] = await db.execute(
-        "DELETE FROM bateaux WHERE BATEAU_ID = ? AND USER_ID = ?", 
+        "DELETE FROM BATEAUX WHERE BATEAU_ID = ? AND USER_ID = ?", 
         [boatId, userId]
       );
 
