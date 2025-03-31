@@ -179,7 +179,7 @@ export const addBoat = async (req, res) => {
   
       // REQUETE SQL POUR AJOUTER LE BATEAU
       const query = `
-        INSERT INTO bateaux (USER_ID, DIRECTION_CRENEAU_ID, LIBELLE_BATEAU, IMMATRICULATION, HAUTEUR_MAX, CREATED_AT) 
+        INSERT INTO BATEAUX (USER_ID, DIRECTION_CRENEAU_ID, LIBELLE_BATEAU, IMMATRICULATION, HAUTEUR_MAX, CREATED_AT) 
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
       
