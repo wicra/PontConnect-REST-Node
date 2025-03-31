@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config("../../.env");
 
 // CONNEXION A LA BASE DE DONNEES
-const connection = await mysql.createConnection({
+const connection = await mysql.createPool({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
