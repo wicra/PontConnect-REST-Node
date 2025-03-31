@@ -424,134 +424,118 @@ export const getUserReservations = async (req, res) => {
 export const updateReservationStatus = async (req, res) => {
   try {
     const data = req.body;
-    // VERIFIER LA PRÉSENCE DES PARAMÈTRES OBLIGATOIRES
-    if (!data.reservation_id || !data.new_status) {
+    
+    // VÉRIFIER LES PARAMÈTRES OBLIGATOIRES
+    if (!data.new_status) {
       return res.status(400).json({
         success: false,
-        message: "Les paramètres 'reservation_id' et 'new_status' sont requis"
+        message: "Le paramètre 'new_status' est requis"
       });
     }
-
-    // RÉCUPÉRER LES DONNÉES
-    let reservation_id = data.reservation_id;
-    const actual_id = data.actual_id; // ID RÉEL DE LA RÉSERVATION
-    const new_status = data.new_status.toLowerCase();
     
-    // PARAMÈTRES EN PLUS POUR L'IDENTIFICATION DE LA RÉSERVATION
-    const date_reservation = data.date_reservation || null;
-    const horaires_id = data.horaires_id || null;
-    const user_id_param = data.user_id || null;
-    const bateau_id_param = data.bateau_id || null;
-
     // MAPPAGE DES STATUTS
     const status_mapping = {
       'confirmé': 1,
       'en attente': 2,
       'annulé': 3
     };
-
+    
+    const new_status = data.new_status.toLowerCase();
     if (!status_mapping[new_status]) {
       return res.status(400).json({
         success: false,
         message: `Statut non reconnu: ${new_status}`
       });
     }
-
-    const new_status_id = status_mapping[new_status];
-
-    // GÉRER LA REQUÊTE 
-    let userInfo;
     
-    // ETAPE 1: RECHERCHER PAR ID RÉEL SI FOURNI
-    if (actual_id && !isNaN(parseInt(actual_id))) {
-      const real_id = parseInt(actual_id);
+    const new_status_id = status_mapping[new_status];
+    
+    // RÉCUPÉRER LA RÉSERVATION
+    let userInfo = null;
+    let reservation_id = null;
+    
+    // PRIORITÉ 1: UTILISER L'ID RÉEL SI FOURNI (MÉTHODE PRÉFÉRÉE)
+    if (data.actual_id && !isNaN(parseInt(data.actual_id))) {
+      reservation_id = parseInt(data.actual_id);
       const [reservations] = await db.execute(
         `SELECT * FROM RESERVATION WHERE RESERVATION_ID = ?`,
-        [real_id]
+        [reservation_id]
       );
-
+      
       if (reservations.length > 0) {
         userInfo = reservations[0];
-        reservation_id = real_id;
-        console.log("Réservation trouvée avec l'ID réel:", reservation_id);
       }
     }
-    
-    // ETAPE 2: RECHERCHER PAR ID COMPOSITE SI ID REEL NON FOURNI
-    if (!userInfo && reservation_id.includes('_')) {
-      const id_parts = reservation_id.split('_');
+    // PRIORITÉ 2: RECHERCHE PAR CRITÈRES COMPLETS
+    else if (data.user_id && data.bateau_id && data.horaires_id && data.date_reservation) {
+      const [reservations] = await db.execute(
+        `SELECT * FROM RESERVATION 
+         WHERE USER_ID = ? 
+         AND BATEAU_ID = ? 
+         AND HORAIRES_ID = ? 
+         AND DATE(DATE_RESERVATION) = ?
+         ORDER BY RESERVATION_ID DESC 
+         LIMIT 1`,
+        [data.user_id, data.bateau_id, data.horaires_id, data.date_reservation]
+      );
+      
+      if (reservations.length > 0) {
+        userInfo = reservations[0];
+        reservation_id = userInfo.RESERVATION_ID;
+      }
+    }
+    // PRIORITÉ 3: RECHERCHE PAR ID COMPOSITE
+    else if (data.reservation_id && data.reservation_id.includes('_')) {
+      const id_parts = data.reservation_id.split('_');
       if (id_parts.length >= 4) {
         const userId = parseInt(id_parts[0]);
         const pontId = parseInt(id_parts[1]);
         const bateauId = parseInt(id_parts[2]);
+        const statusId = parseInt(id_parts[3]);
         
-        let query = `SELECT * FROM RESERVATION WHERE USER_ID = ? AND PONT_ID = ? AND BATEAU_ID = ?`;
-        let params = [userId, pontId, bateauId];
-        
-        if (date_reservation) {
-          query += ` AND DATE(DATE_RESERVATION) = ?`;
-          params.push(date_reservation);
+        // VÉRIFIER QUE LES VALEURS SONT NUMÉRIQUES
+        if (isNaN(userId) || isNaN(pontId) || isNaN(bateauId) || isNaN(statusId)) {
+          return res.status(400).json({
+            success: false,
+            message: "ID composite contient des valeurs non numériques"
+          });
         }
         
-        if (horaires_id) {
-          query += ` AND HORAIRES_ID = ?`;
-          params.push(horaires_id);
-        }
+        const [reservations] = await db.execute(
+          `SELECT * FROM RESERVATION 
+           WHERE USER_ID = ? 
+           AND PONT_ID = ? 
+           AND BATEAU_ID = ? 
+           AND STATUS_ID = ?
+           ORDER BY RESERVATION_ID DESC 
+           LIMIT 1`,
+          [userId, pontId, bateauId, statusId]
+        );
         
-        // LIMITER À LA DERNIÈRE RÉSERVATION
-        query += ` ORDER BY RESERVATION_ID DESC LIMIT 1`;
-        
-        const [reservations] = await db.execute(query, params);
         if (reservations.length > 0) {
           userInfo = reservations[0];
           reservation_id = userInfo.RESERVATION_ID;
-          console.log("Réservation trouvée avec critères:", reservation_id);
         }
       }
     }
     
-    // ETAPE 3: RECHERCHER PAR USER_ID ET BATEAU_ID SI AUCUNE RÉSERVATION TROUVÉE
-    if (!userInfo && user_id_param && bateau_id_param) {
-      let query = `SELECT * FROM RESERVATION WHERE USER_ID = ? AND BATEAU_ID = ?`;
-      let params = [user_id_param, bateau_id_param];
-      
-      if (date_reservation) {
-        query += ` AND DATE(DATE_RESERVATION) = ?`;
-        params.push(date_reservation);
-      }
-      
-      if (horaires_id) {
-        query += ` AND HORAIRES_ID = ?`;
-        params.push(horaires_id);
-      }
-      
-      query += ` ORDER BY RESERVATION_ID DESC LIMIT 1`;
-      
-      const [reservations] = await db.execute(query, params);
-      if (reservations.length > 0) {
-        userInfo = reservations[0];
-        reservation_id = userInfo.RESERVATION_ID;
-        console.log("Réservation trouvée avec paramètres individuels:", reservation_id);
-      }
-    }
-    
-    // SI AUCUNE RÉSERVATION TROUVÉE
+    // VÉRIFIER SI LA RÉSERVATION A ÉTÉ TROUVÉE
     if (!userInfo) {
       return res.status(404).json({
         success: false,
-        message: "Aucune réservation trouvée"
+        message: "Aucune réservation trouvée avec les critères fournis"
       });
     }
-
-    // SI LE STATUT EST DÉJÀ À JOUR NE RI ENVOYER
+    
+    // SI LE STATUT EST DÉJÀ À JOUR
     if (userInfo.STATUS_ID === new_status_id) {
       return res.status(200).json({
         success: true,
         message: "Le statut est déjà à jour"
       });
     }
-
-    // VERIFIER LA CAPACITÉ MAXIMALE SI PEUT ENCORE CONFIRMER DES RÉSERVATIONS
+    
+    // VÉRIFIER LA CAPACITÉ POUR LES CONFIRMATIONS
     if (new_status_id === 1) {
       const [capacityCheck] = await db.execute(
         `SELECT COUNT(*) AS confirmed_count
@@ -561,7 +545,7 @@ export const updateReservationStatus = async (req, res) => {
          AND STATUS_ID = 1`,
         [userInfo.HORAIRES_ID, userInfo.DATE_RESERVATION]
       );
-
+      
       if (capacityCheck[0].confirmed_count >= userInfo.CAPACITE_MAX) {
         return res.status(400).json({
           success: false,
@@ -569,17 +553,15 @@ export const updateReservationStatus = async (req, res) => {
         });
       }
     }
-
-    console.log("Mise à jour de la réservation:", reservation_id, "avec statut:", new_status_id);
-
-    // METTRE À JOUR LE STATUT DE LA RÉSERVATION
-    const [result] = await db.execute(
+    
+    // MISE À JOUR DU STATUT
+    const [updateResult] = await db.execute(
       `UPDATE RESERVATION SET STATUS_ID = ? WHERE RESERVATION_ID = ?`,
       [new_status_id, reservation_id]
     );
-
-    if (result.affectedRows > 0) {
-      // COMPOSER UN NOUVEAU ID DE RÉSERVATION
+    
+    if (updateResult.affectedRows > 0) {
+      // RÉPONSE RÉUSSIE
       const new_composite_id = `${userInfo.USER_ID}_${userInfo.PONT_ID}_${userInfo.BATEAU_ID}_${new_status_id}`;
       
       return res.status(200).json({
@@ -587,7 +569,7 @@ export const updateReservationStatus = async (req, res) => {
         message: "Statut mis à jour avec succès",
         old_status: userInfo.STATUS_ID,
         new_status: new_status_id,
-        old_reservation_id: data.reservation_id,
+        old_reservation_id: data.reservation_id || `${userInfo.USER_ID}_${userInfo.PONT_ID}_${userInfo.BATEAU_ID}_${userInfo.STATUS_ID}`,
         new_reservation_id: new_composite_id,
         actual_reservation_id: reservation_id,
         date_reservation: userInfo.DATE_RESERVATION
@@ -599,10 +581,11 @@ export const updateReservationStatus = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Exception dans updateReservationStatus:", error);
+    console.error("EXCEPTION DANS UPDATERESERVATIONSTATUS:", error);
     return res.status(500).json({
       success: false,
-      message: "Erreur technique: " + error.message
+      message: "Erreur technique: " + error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
