@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import db from '../models/db.js';
 
 ` ╔═════════════════════════════════════════════╗
@@ -70,7 +70,8 @@ export const login = async (req, res) => {
     // GENERATION DU TOKEN
     const token = jwt.sign(
       { id: user.USER_ID,
-        type_user_id: user.TYPE_USER_ID 
+        type_user_id: user.TYPE_USER_ID,
+        salt: process.env.JWT_SALT || crypto.randomBytes(8).toString('hex') // SALAGE DU TOKEN
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRATION }
