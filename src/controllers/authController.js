@@ -74,7 +74,7 @@ export const login = async (req, res) => {
         salt: process.env.JWT_SALT || crypto.randomBytes(8).toString('hex') // SALAGE DU TOKEN
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRATION }
+      { expiresIn: process.env.JWT_EXPIRATION.replace(/['"]/g, '') || '24h'}
     );
 
     // DATE DE DERNIERE CONNEXION
