@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { createHash } from 'crypto';
 import db from '../models/db.js';
 
@@ -66,17 +67,28 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
+    // GENERATION DU TOKEN
+    const token = jwt.sign(
+      { id: user.USER_ID,
+        type_user_id: user.TYPE_USER_ID 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRATION }
+    );
+
     // DATE DE DERNIERE CONNEXION
     await db.execute('UPDATE USERS SET LAST_SIGN = NOW() WHERE USER_ID = ?', [user.USER_ID]);
 
+    
     // RETOUR DE L'UTILISATEUR
     return res.status(200).json({
       success: true,
+      token,
       user: {
         id: user.USER_ID,
         name: user.USER_NAME,
         email: user.EMAIL,
-        type_user_id: user.TYPE_USER_ID
+        type_user_id: user.TYPE_USER_ID,
       }
     });
   } catch (error) {
