@@ -1,4 +1,5 @@
 import db from '../models/db.js';
+import { sendReservationStatusEmail } from '../utils/mailer.js';
 
 ` ╔══════════════════════════════════════════════════╗
   ║ FONCTION POUR RÉCUPÉRER LES CRÉNEAUX DISPONIBLES ║
@@ -560,7 +561,75 @@ export const updateReservationStatus = async (req, res) => {
       [new_status_id, reservation_id]
     );
     
+    // --------------------------------------------------------------------------- //
+    
+    ` ╔═════════════════════╗
+      ║  NOTIFICATIONS MAIL ║
+      ╚═════════════════════╝
+    `
     if (updateResult.affectedRows > 0) {
+      // RÉCUPÉRER LES INFORMATIONS COMPLÈTES POUR L'EMAIL
+      const [reservationDetails] = await db.execute(`
+        SELECT 
+            r.*,
+            u.EMAIL,
+            u.USER_NAME,
+            p.LIBELLE_PONT AS pont_name,
+            dc.LIBELLE_DIRECTION_CRENEAU AS direction,
+            b.LIBELLE_BATEAU AS bateau_name,
+            b.IMMATRICULATION AS bateau_immatriculation,
+            s.LIBELLE_STATUS AS statut,
+            pc.LIBELLE_PERIODE AS libelle,
+            TIME_FORMAT(hc.HORAIRE_DEPART, '%H:%i') AS heure_debut,
+            TIME_FORMAT(IFNULL(hc.HORAIRE_PASSAGE3, hc.HORAIRE_PASSAGE1), '%H:%i') AS heure_fin
+        FROM 
+            RESERVATION r
+        JOIN 
+            USERS u ON r.USER_ID = u.USER_ID
+        JOIN 
+            PONTS p ON r.PONT_ID = p.PONT_ID
+        JOIN 
+            BATEAUX b ON r.BATEAU_ID = b.BATEAU_ID
+        JOIN 
+            STATUS s ON r.STATUS_ID = s.STATUS_ID
+        JOIN 
+            HORAIRES_CRENEAUX hc ON r.HORAIRES_ID = hc.HORAIRES_ID
+        JOIN 
+            PERIODE_CRENEAU pc ON hc.PERIODE_ID = pc.PERIODE_ID
+        JOIN
+            DIRECTION_CRENEAU dc ON hc.DIRECTION_CRENEAU_ID = dc.DIRECTION_CRENEAU_ID
+        WHERE 
+            r.RESERVATION_ID = ?
+      `, [reservation_id]);
+      
+      // ENVOYER L'EMAIL DE NOTIFICATION
+      if (reservationDetails && reservationDetails.length > 0) {
+        const details = reservationDetails[0];
+        const reservationInfo = {
+          date_reservation: details.DATE_RESERVATION,
+          pont_name: details.pont_name,
+          direction: details.direction,
+          bateau_name: details.bateau_name,
+          bateau_immatriculation: details.bateau_immatriculation,
+          heure_debut: details.heure_debut,
+          heure_fin: details.heure_fin
+        };
+        
+        try {
+          await sendReservationStatusEmail(
+            details.EMAIL,
+            details.USER_NAME,
+            reservationInfo,
+            new_status
+          );
+        } catch (emailError) {
+          console.error("Erreur lors de l'envoi de l'email:", emailError);
+          // Ne pas bloquer la réponse si l'email échoue
+        }
+      }
+      // -------------------------------------------------------------------------- //
+      
+
       // RÉPONSE RÉUSSIE
       const new_composite_id = `${userInfo.USER_ID}_${userInfo.PONT_ID}_${userInfo.BATEAU_ID}_${new_status_id}`;
       
@@ -572,7 +641,8 @@ export const updateReservationStatus = async (req, res) => {
         old_reservation_id: data.reservation_id || `${userInfo.USER_ID}_${userInfo.PONT_ID}_${userInfo.BATEAU_ID}_${userInfo.STATUS_ID}`,
         new_reservation_id: new_composite_id,
         actual_reservation_id: reservation_id,
-        date_reservation: userInfo.DATE_RESERVATION
+        date_reservation: userInfo.DATE_RESERVATION,
+        email_sent: true
       });
     } else {
       return res.status(400).json({
