@@ -12,7 +12,7 @@ const router = express.Router();
 ` ╔═════════════════════════╗
   ║ ROUTES DE L'UTILISATEUR ║
   ╚═════════════════════════╝`
-router.get('/GetAllAvailabilities', verifyToken, checkUserAccess, GetAllAvailabilities);
+router.get('/GetAllAvailabilities', verifyToken, GetAllAvailabilities);
 router.get('/GetSensorValues', verifyToken, checkUserAccess, GetSensorValues);
 router.post('/addBoat', verifyToken, checkUserAccess, addBoat);
 router.get('/deleteBoat', verifyToken, checkUserAccess, deleteBoat);
