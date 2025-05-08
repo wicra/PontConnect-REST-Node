@@ -43,34 +43,11 @@ export const sendReservationStatusEmail = async (email, username, reservation, s
         subject = 'Annulation de votre réservation - PontConnect';
     }
 
-    // FORMATAGE ROBUSTE DE LA DATE
-    let date = "Date indisponible";
-    try {
-        if (reservation && reservation.reservation_date) {
-            const dateObj = new Date(reservation.reservation_date);
-            
-            if (!isNaN(dateObj.getTime())) {
-                formattedDate = dateObj.toLocaleDateString('fr-FR', {
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric'
-                });
-            } else {
-                console.log("Date invalide reçue:", reservation.reservation_date);
-            }
-        } else {
-            console.log("Date manquante dans l'objet reservation");
-        }
-    } catch (error) {
-        console.error("Erreur lors du formatage de la date:", error);
-    }
-
     // CONTENU HTML DE L'EMAIL
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #3CB4AB; color: white; padding: 20px; text-align: center;">
-            <img src="../assets/images/logo.svg" alt="PontConnect" style="max-width: 200px; height: auto;">
+            <h1>PontConnect</h1>
         </div>
         <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
             <p>Bonjour ${username},</p>
@@ -78,7 +55,7 @@ export const sendReservationStatusEmail = async (email, username, reservation, s
             
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h3>Détails de la réservation :</h3>
-            <p><strong>Date :</strong> ${date}</p>
+            <p><strong>Date :</strong> ${reservation.reservation_date}</p>
             <p><strong>Pont :</strong> ${reservation.pont_name}</p>
             <p><strong>Direction :</strong> ${reservation.direction}</p>
             <p><strong>Bateau :</strong> ${reservation.bateau_name} (${reservation.bateau_immatriculation})</p>
