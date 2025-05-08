@@ -31,30 +31,46 @@ export const sendReservationStatusEmail = async (email, username, reservation, s
     
     if (status === 'confirmé') {
         statusText = 'confirmée';
-        statusColor = '#2ecc71';
+        statusColor = '#3CB4AB';
         subject = 'Confirmation de votre réservation - PontConnect';
     } else if (status === 'refusé') {
         statusText = 'refusée';
-        statusColor = '#e74c3c';
+        statusColor = '#EE5038';
         subject = 'Refus de votre réservation - PontConnect';
     } else if (status === 'annulé') {
         statusText = 'annulée';
-        statusColor = '#f39c12';
+        statusColor = '#FED775';
         subject = 'Annulation de votre réservation - PontConnect';
     }
 
-    const date = new Date(reservation.reservation_date).toLocaleDateString('fr-FR', {
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric'
-    });
+    // FORMATAGE ROBUSTE DE LA DATE
+    let date = "Date indisponible";
+    try {
+        if (reservation && reservation.reservation_date) {
+            const dateObj = new Date(reservation.reservation_date);
+            
+            if (!isNaN(dateObj.getTime())) {
+                formattedDate = dateObj.toLocaleDateString('fr-FR', {
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                });
+            } else {
+                console.log("Date invalide reçue:", reservation.reservation_date);
+            }
+        } else {
+            console.log("Date manquante dans l'objet reservation");
+        }
+    } catch (error) {
+        console.error("Erreur lors du formatage de la date:", error);
+    }
 
     // CONTENU HTML DE L'EMAIL
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #0056b3; color: white; padding: 20px; text-align: center;">
-            <h1>PontConnect</h1>
+        <div style="background-color: #3CB4AB; color: white; padding: 20px; text-align: center;">
+            <img src="../assets/images/logo.svg" alt="PontConnect" style="max-width: 200px; height: auto;">
         </div>
         <div style="padding: 20px; border: 1px solid #ddd; border-top: none;">
             <p>Bonjour ${username},</p>
