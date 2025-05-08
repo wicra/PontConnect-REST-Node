@@ -13,6 +13,15 @@ export const adminAddHoraireCreneau = async (req, res) => {
             message: "Méthode non autorisée"
         });
     }
+
+    // VERIFIER QUE L'UTILISATEUR EST ADMINISTRATEUR
+    if (!req.user || req.user.type_user_id !== 1) {
+        return res.status(403).json({
+            success: false,
+            message: "Accès réservé aux administrateurs"
+        });
+    }
+
     const data = req.body;
 
     // VERIFIER QUE TOUTES LES DONNEES SONT PRESENTES
@@ -90,6 +99,15 @@ export const adminDeleteHoraireCreneau = async (req, res) => {
             message: "Méthode non autorisée"
         });
     }
+
+    // VERIFIER QUE L'UTILISATEUR EST ADMINISTRATEUR
+    if (!req.user || req.user.type_user_id !== 1) {
+        return res.status(403).json({
+            success: false,
+            message: "Accès réservé aux administrateurs"
+        });
+    }
+
     const data = req.body;
 
     // VERIFIER QUE L'ID DU CRENEAU EST PRESENT
@@ -164,6 +182,14 @@ export const adminGetFormDataHorairesCreneaux = async (req, res) => {
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
+
+    // VERIFIER QUE L'UTILISATEUR EST ADMINISTRATEUR    
+if (!req.user || req.user.type_user_id !== 1) {
+        return res.status(403).json({
+            success: false,
+            message: "Accès réservé aux administrateurs"
+        });
+    }
     
     try {
         // RECUPERER TOUTES LES PERIODES
@@ -203,6 +229,14 @@ export const adminGetHorairesCreneaux = async (req, res) => {
     // TRAITER LES REQUETES OPTIONS (CORS)
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
+    }
+
+    // VERIFIER QUE L'UTILISATEUR EST ADMINISTRATEUR    
+if (!req.user || req.user.type_user_id !== 1) {
+        return res.status(403).json({
+            success: false,
+            message: "Accès réservé aux administrateurs"
+        });
     }
     
     try {
@@ -263,6 +297,14 @@ export const adminUpdateHoraireCreneau = async (req, res) => {
         return res.status(405).json({
             success: false,
             message: "Méthode non autorisée"
+        });
+    }
+
+    // VERIFIER QUE L'UTILISATEUR EST ADMINISTRATEUR
+    if (!req.user || req.user.type_user_id !== 1) {
+        return res.status(403).json({
+            success: false,
+            message: "Accès réservé aux administrateurs"
         });
     }
 

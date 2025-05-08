@@ -136,31 +136,30 @@ export const GetSensorValues = async (req, res) => {
   ╚══════════════════════════════════════════════════╝
 `
 export const addBoat = async (req, res) => {
-
     try {
+      // UTILISATION DE L'ID DU TOKEN 
+      const userId = req.user.id;
+      
       // RECUPERATION DES DONNEES DU CORPS DE LA REQUETE
-      const { user_id, nom, immatriculation, hauteur_max } = req.body;
+      const { nom, immatriculation, hauteur_max } = req.body;
 
       // VERIFICATION DES CHAMPS OBLIGATOIRES
       if (
-        !user_id || 
         !nom || 
         !immatriculation || 
         !hauteur_max ||
         nom.trim() === '' ||
         immatriculation.trim() === '' ||
-        hauteur_max.trim() === '' ||
-        (typeof hauteur_max === 'string' && hauteur_max.trim() === '')
+        hauteur_max.toString().trim() === ''
       ) {
         return res.status(400).json({
           success: false,
-          message: "Les paramètres user_id, nom, immatriculation et hauteur_mat sont requis et ne doivent pas être vides"
+          message: "Les paramètres nom, immatriculation et hauteur_max sont requis et ne doivent pas être vides"
         });
       }
   
       // TRAITEMENT DES DONNEES
-      const userId = parseInt(user_id);
-      const boatName = nom.trim();
+            const boatName = nom.trim();
       const registration = immatriculation.trim();
       
       // CONVERSION DE LA HAUTEUR (GESTION DES VIRGULES)
@@ -208,18 +207,14 @@ export const addBoat = async (req, res) => {
 `
 export const deleteBoat = async (req, res) => {
   try {
-    // VÉRIFICATION DE L'EXISTENCE DES PARAMÈTRES BATEAU_ID ET USER_ID
-    const { bateau_id, user_id } = req.query;
-    if (!bateau_id || !user_id) {
+    const { bateau_id } = req.query;
+    const userId = req.user.id;
+    if (!bateau_id) {
       return res.status(400).json({
         success: false,
-        message: "Les paramètres bateau_id et user_id sont requis"
+        message: "Le paramètre bateau_id est requis"
       });
     }
-
-    // CONVERSION DES IDENTIFIANTS EN NOMBRES ENTIERS
-    const boatId = parseInt(bateau_id);
-    const userId = parseInt(user_id);
 
     // DÉMARRAGE DE LA TRANSACTION 
     await db.query('START TRANSACTION');
@@ -228,13 +223,13 @@ export const deleteBoat = async (req, res) => {
       // REQUÊTE SQL POUR SUPPRIMER LES RÉSERVATIONS ASSOCIÉES AU BATEAU
       await db.execute(
         "DELETE FROM RESERVATION WHERE BATEAU_ID = ?", 
-        [boatId]
+        [bateau_id]
       );
 
       // REQUÊTE SQL POUR SUPPRIMER LE BATEAU AVEC VÉRIFICATION DE L'UTILISATEUR
       const [result] = await db.execute(
         "DELETE FROM BATEAUX WHERE BATEAU_ID = ? AND USER_ID = ?", 
-        [boatId, userId]
+        [bateau_id, userId]
       );
 
       // VÉRIFICATION SI UN BATEAU A ÉTÉ SUPPRIMÉ
@@ -277,15 +272,7 @@ export const deleteBoat = async (req, res) => {
 export const getUserBateaux = async (req, res) => {
 
     try {
-      // VERIFICATION DU PARAMÈTRE USER_ID
-      if (!req.query.user_id || req.query.user_id === '') {
-        return res.status(400).json({
-          success: false,
-          message: "Paramètre 'user_id' manquant"
-        });
-      }
-  
-      const user_id = req.query.user_id;
+      const user_id = req.user.id;
   
       // REQUÊTE SQL POUR RÉCUPÉRER TOUS LES BATEAUX DE L'UTILISATEUR
       const query = `
@@ -332,17 +319,8 @@ export const getUserBateaux = async (req, res) => {
   ╚═══════════════════════════════════════════════════════════╝
 `
 export const getUserReservations = async (req, res) => {
-
   try {
-    // VÉRIFICATION DES PARAMÈTRES
-    if (!req.query.user_id || req.query.user_id === '') {
-      return res.status(400).json({
-        success: false,
-        message: "Paramètre 'user_id' manquant"
-      });
-    }
-
-    const user_id = req.query.user_id;
+        const user_id = req.user.id;
 
     // REQUÊTE SQL POUR RÉCUPÉRER TOUTES LES RÉSERVATIONS DE L'UTILISATEUR AVEC LEURS DÉTAILS
     const query = `
@@ -756,12 +734,11 @@ export const getCreneaux = async (req, res) => {
   ╚══════════════════════════════════════════════════╝
 `
 export const reserveCreneau = async (req, res) => {
-
   try {
-    const data = req.body;
+    const user_id = req.user.id;
+    const { creneau_id, bateau_id, reservation_date } = req.body;
 
-    // VÉRIFIER LA PRÉSENCE DES PARAMÈTRES OBLIGATOIRES
-    if (!data.user_id || !data.creneau_id || !data.bateau_id || !data.reservation_date) {
+    if (!creneau_id || !bateau_id || !reservation_date) {
       return res.status(400).json({
         success: false,
         message: "Paramètres manquants dans la requête"
@@ -769,10 +746,6 @@ export const reserveCreneau = async (req, res) => {
     }
 
     // RECUPÉRER LES DONNÉES DE LA REQUÊTE
-    const user_id = data.user_id;
-    const creneau_id = data.creneau_id;
-    const bateau_id = data.bateau_id;
-    const reservation_date = data.reservation_date; // Format attendu: YYYY-MM-DD
     const pont_id = 1;       // Valeur fixe pour simplifier
     const status_id = 2;     // En attente (ID 2)
     const capacite_max = 5;  // Valeur fixe
