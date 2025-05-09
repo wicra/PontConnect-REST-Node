@@ -15,7 +15,7 @@ const router = express.Router();
 router.get('/GetAllAvailabilities', verifyToken, GetAllAvailabilities);
 router.get('/GetSensorValues', verifyToken, GetSensorValues);
 router.post('/addBoat', verifyToken, addBoat);
-router.delete('/deleteBoat', verifyToken, deleteBoat);
+router.get('/deleteBoat', verifyToken, deleteBoat);
 router.get('/getUserBateaux', verifyToken, getUserBateaux);
 router.get('/getUserReservations', verifyToken, getUserReservations);
 router.post('/updateReservationStatus', verifyToken, updateReservationStatus);
