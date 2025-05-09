@@ -11,12 +11,13 @@ const router = express.Router();
 ` ╔═════════════════════════╗
   ║     ROUTES DE L'ADMIN   ║
   ╚═════════════════════════╝`
-router.post('/adminAddHoraireCreneau', verifyToken, adminAddHoraireCreneau );
-router.post('/adminDeleteHoraireCreneau', verifyToken, adminDeleteHoraireCreneau);
-router.post('/adminUpdateHoraireCreneau', verifyToken, adminUpdateHoraireCreneau);
-router.get('/adminGetFormDataHorairesCreneaux', verifyToken, adminGetFormDataHorairesCreneaux);
-router.get('/adminGetHorairesCreneaux', verifyToken, adminGetHorairesCreneaux);
-router.get('/getPendingReservations', verifyToken, getPendingReservations);
+router.post('/horaires-creneaux/add', verifyToken, adminAddHoraireCreneau );
+router.post('/horaires-creneaux/delete', verifyToken, adminDeleteHoraireCreneau);
+router.post('/horaires-creneaux/update', verifyToken, adminUpdateHoraireCreneau);
+router.get('/horaires-creneaux/form-data', verifyToken, adminGetFormDataHorairesCreneaux);
+router.get('/horaires-creneaux', verifyToken, adminGetHorairesCreneaux);
+router.get('/reservations/pending', verifyToken, getPendingReservations);
+
 
 // EXPORTATION DU MODULE
 export default router;

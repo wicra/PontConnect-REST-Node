@@ -13,9 +13,9 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true })); 
 
 // LES ROUTES
-app.use('/auth', authRoutes);
-app.use('/user', userRoutes);
-app.use('/admin', adminRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // DEMARRAGE DU SERVEUR
 const PORT = 3000;
