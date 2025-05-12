@@ -293,7 +293,7 @@ if (!req.user || req.user.type_user_id !== 1) {
 export const adminUpdateHoraireCreneau = async (req, res) => {
     
     // ASSURER QUE LA REQUETE SOIT DE TYPE POST
-    if (req.method !== 'POST') {
+    if (req.method !== 'PATCH') {
         return res.status(405).json({
             success: false,
             message: "Méthode non autorisée"
