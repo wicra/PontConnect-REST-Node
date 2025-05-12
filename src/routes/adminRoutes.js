@@ -13,7 +13,7 @@ const router = express.Router();
   ╚═════════════════════════╝`
 router.post('/horaires-creneaux', verifyToken, adminAddHoraireCreneau );
 router.delete('/horaires-creneaux', verifyToken, adminDeleteHoraireCreneau);
-router.patch('/horaires-creneaux/:id', verifyToken, adminUpdateHoraireCreneau);
+router.patch('/horaires-creneaux', verifyToken, adminUpdateHoraireCreneau);
 router.get('/horaires-creneaux/form-data', verifyToken, adminGetFormDataHorairesCreneaux);
 router.get('/horaires-creneaux', verifyToken, adminGetHorairesCreneaux);
 router.get('/reservations/pending', verifyToken, getPendingReservations);
