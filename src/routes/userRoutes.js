@@ -14,11 +14,11 @@ const router = express.Router();
   ╚═════════════════════════╝`
 router.get('/availabilities', verifyToken, GetAllAvailabilities);
 router.get('/sensor-values', verifyToken, GetSensorValues);
-router.post('/boats/add', verifyToken, addBoat);
-router.get('/boats/del', verifyToken, deleteBoat);
+router.post('/boats', verifyToken, addBoat);
+router.delete('/boats', verifyToken, deleteBoat);
 router.get('/boats', verifyToken, getUserBateaux);
 router.get('/reservations', verifyToken, getUserReservations);
-router.post('/reservations-status/update', verifyToken, updateReservationStatus);
+router.patch('/reservations-status', verifyToken, updateReservationStatus);
 router.get('/creneaux', verifyToken, getCreneaux);
 router.post('/reservations-creneaux', verifyToken, reserveCreneau);
 

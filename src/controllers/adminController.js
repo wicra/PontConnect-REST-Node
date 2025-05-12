@@ -93,7 +93,7 @@ export const adminAddHoraireCreneau = async (req, res) => {
 export const adminDeleteHoraireCreneau = async (req, res) => {
 
     // ASSURER QUE LA REQUETE SOIT DE TYPE POST
-    if (req.method !== 'POST') {
+    if (req.method !== 'DELETE') {
         return res.status(405).json({
             success: false,
             message: "Méthode non autorisée"
@@ -108,10 +108,10 @@ export const adminDeleteHoraireCreneau = async (req, res) => {
         });
     }
 
-    const data = req.body;
+    const horaires_id = req.query.horaires_id;
 
     // VERIFIER QUE L'ID DU CRENEAU EST PRESENT
-    if (!data.horaires_id) {
+    if (!horaires_id) {
         return res.status(400).json({
             success: false,
             message: "ID de créneau manquant"
@@ -124,7 +124,7 @@ export const adminDeleteHoraireCreneau = async (req, res) => {
 
         // VERIFIER SI LE CRENEAU A DES RESERVATIONS
         const checkQuery = "SELECT COUNT(*) as count FROM RESERVATION WHERE HORAIRES_ID = ?";
-        const [checkResult] = await db.execute(checkQuery, [data.horaires_id]);
+        const [checkResult] = await db.execute(checkQuery, [horaires_id]);
         const reservationCount = checkResult[0].count;
 
         // SI LE CRENEAU A DES RESERVATIONS, NE PAS LE SUPPRIMER
@@ -138,7 +138,7 @@ export const adminDeleteHoraireCreneau = async (req, res) => {
 
         // REQUETE DE SUPPRESSION
         const deleteQuery = "DELETE FROM HORAIRES_CRENEAUX WHERE HORAIRES_ID = ?";
-        const [deleteResult] = await db.execute(deleteQuery, [data.horaires_id]);
+        const [deleteResult] = await db.execute(deleteQuery, [horaires_id]);
 
         // VERIFIER SI LA SUPPRESSION A ETE EFFECTUEE
         if (deleteResult.affectedRows === 0) {
