@@ -1,4 +1,4 @@
-import db from "../db/db.js";
+import db from '../models/db.js';
 
 ` ╔═════════════════════════════════════════════╗
   ║     FONCTIONS AJOUT DE MESURE CAPTEUR       ║
