@@ -3,6 +3,7 @@ import cors from 'cors';
 import authRoutes from './src/routes/authRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
+import sensorRoutes from './src/routes/sensorRoutes.js';
 
 // CREATION DE L'APPLICATION EXPRESS
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/sensor', sensorRoutes);
 
 // DEMARRAGE DU SERVEUR
 const PORT = 3000;
