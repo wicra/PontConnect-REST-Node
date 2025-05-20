@@ -6,12 +6,25 @@ INSERT INTO `DIRECTION_CRENEAU` (`DIRECTION_CRENEAU_ID`, `LIBELLE_DIRECTION_CREN
 (1, 'entre'),
 (2, 'sortie');
 
--- `CAPTEURS`
-INSERT INTO `CAPTEURS` (`CAPTEUR_ID`, `LIBELLE_CAPTEUR`, `VALEUR_CAPTEUR`, `DATE_AJOUT`) VALUES
-(1, 'Capteur temperature', '20', '2025-03-05 17:34:40'),
-(2, 'Capteur humidite', '70', '2025-03-05 17:34:40'),
-(3, 'Capteur niveau d\'eau', '0', '2025-03-05 17:34:40'),
-(4, 'Capteur niveau d\'eau', '9', '2025-03-05 17:34:40');
+-- CAPTEURS
+INSERT INTO `CAPTEURS` (`CAPTEUR_ID`, `TYPE_CAPTEUR`, `LIBELLE_CAPTEUR`, `UNITE_MESURE`, `EMPLACEMENT`, `STATUS`) VALUES
+(1, 'temperature', 'Capteur temperature', '°C', 'Pont de Dunkerque', 'actif'),
+(2, 'tds', 'Capteur humidite', 'ppm', 'Pont de Dunkerque', 'actif'),
+(3, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Dunkerque', 'actif'),
+
+(4, 'temperature', 'Capteur temperature', '°C', 'Pont de Lille', 'actif'),
+(5, 'tds', 'Capteur humidite', 'ppm', 'Pont de Lille', 'actif'),
+(6, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Lille', 'actif');
+
+(4, 'temperature', 'Capteur temperature', '°C', 'Pont de Paris', 'actif'),
+(5, 'tds', 'Capteur humidite', 'ppm', 'Pont de Paris', 'actif'),
+(9, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Paris', 'actif'),
+
+-- `MESURES_CAPTEURS`
+INSERT INTO `MESURES_CAPTEURS` (`CAPTEUR_ID`, `VALEUR`, `DATE_MESURE`) VALUES
+(1, 18.50, '2025-03-04 12:00:00'),
+(2, 19.25, '2025-03-04 18:00:00'),
+(3, 20.00, '2025-03-05 17:34:40'),
 
 -- `PERIODE_CRENEAU`
 INSERT INTO `PERIODE_CRENEAU` (`PERIODE_ID`, `LIBELLE_PERIODE`) VALUES
@@ -35,8 +48,9 @@ INSERT INTO `USERS` (`USER_ID`, `TYPE_USER_ID`, `USER_NAME`, `EMAIL`, `PASSWORD`
 
 -- `PONTS`
 INSERT INTO `PONTS` (`PONT_ID`, `CAPTEUR_ID`, `LIBELLE_PONT`, `ADRESSE`) VALUES
-(1, 3, 'Pont de Dunkerque', 'Quai des Hollandais'),
-(2, 4, 'Pont de Lille', 'Rue du Pont');
+(1, 1, 'Pont de Dunkerque', 'Quai des Hollandais'),
+(2, 2, 'Pont de Lille', 'Rue du Pont');
+(3, 3, 'Pont de Paris', 'Rue du Pont');
 
 -- `HORAIRES_CRENEAUX`
 INSERT INTO `HORAIRES_CRENEAUX` (`HORAIRES_ID`, `PERIODE_ID`, `DIRECTION_CRENEAU_ID`, `HORAIRE_DEPART`, `HORAIRE_PASSAGE1`, `HORAIRE_PASSAGE2`, `HORAIRE_PASSAGE3`) VALUES
