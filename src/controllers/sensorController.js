@@ -1,4 +1,5 @@
-import db from '../models/db.js';
+import e from "express";
+import db from "../models/db.js";
 
 ` ╔═════════════════════════════════════════════╗
   ║     FONCTIONS AJOUT DE MESURE CAPTEUR       ║
@@ -90,59 +91,178 @@ export const addMesureSensor = async (req, res) => {
   }
 };
 
-
 ` ╔══════════════════════════════════════════════════╗
   ║ FONCTION POUR RÉCUPÉRER LES VALEURS DES CAPTEURS ║
   ╚══════════════════════════════════════════════════╝
-`
+`;
 export const GetSensorValues = async (req, res) => {
-    try {
+  try {
+    // RÉCUPÉRER TOUS LES PONTS
+    const [ponts] = await db.query(`
+      SELECT 
+        p.PONT_ID, 
+        p.LIBELLE_PONT, 
+        p.ADRESSE,
+        p.CAPTEUR_ID
+      FROM 
+        PONTS p
+      ORDER BY 
+        p.PONT_ID
+    `);
 
-      // REQUÊTE POUR RÉCUPÉRER LES VALEURS COMMUNES DES PONTS
-      const queryGlobal = `
-        SELECT CAPTEUR_ID, LIBELLE_CAPTEUR, VALEUR_CAPTEUR 
-        FROM CAPTEURS 
-        WHERE CAPTEUR_ID IN (1, 2)
-      `; // 1: TEMPERATURE, 2: HUMIDITE
-      
-      const [globalSensors] = await db.query(queryGlobal);
-      
-      // CRÉATION D'UN OBJET POUR STOCKER LES VALEURS GLOBALES
-      const global = {};
-      globalSensors.forEach(sensor => {
-        global[sensor.CAPTEUR_ID] = sensor.VALEUR_CAPTEUR;
-      });
-      
-      // REQUÊTE POUR RÉCUPÉRER LES PONTS AVEC LEURS VALEURS DE CAPTEURS ASSOCIÉS
-      const queryPonts = `
-        SELECT 
-          p.PONT_ID, 
-          p.LIBELLE_PONT, 
-          (SELECT c.VALEUR_CAPTEUR FROM CAPTEURS c WHERE c.CAPTEUR_ID = p.CAPTEUR_ID) AS NIVEAU_EAU,
-          (SELECT c.DATE_AJOUT FROM CAPTEURS c WHERE c.CAPTEUR_ID = p.CAPTEUR_ID) AS DATE_AJOUT
-        FROM PONTS p
-        ORDER BY p.PONT_ID
-      `;
-      
-      const [ponts] = await db.query(queryPonts);
-      
-      // AJOUT DES VALEURS GLOBALES AUX PONTS
-      ponts.forEach(p => {
-        p.HUMIDITE = global[1] || null;
-        p.TEMPERATURE = global[2] || null;
-      });
-      
-      // ENVOI DE LA RÉPONSE DE SUCCÈS AVEC LES DONNÉES
+    // AUCUN PONT TROUVÉ
+    if (ponts.length === 0) {
       return res.status(200).json({
         success: true,
-        ponts: ponts
-      });
-      
-    } catch (error) {
-      console.error("Erreur lors de la récupération des capteurs:", error.message);
-      return res.status(500).json({
-        success: false,
-        message: "Erreur: " + error.message
+        ponts: [],
       });
     }
+
+    // RÉCUPÉRER LES CAPTEURS ASSOCIÉS À CHAQUE PONT PAR EMPLACEMENT
+    const pontsAvecCapteurs = [];
+
+    // TRAITER CHAQUE PONT
+    for (const pont of ponts) {
+      const [capteursPont] = await db.query(
+        `
+        SELECT 
+          c.CAPTEUR_ID, 
+          c.TYPE_CAPTEUR,
+          c.LIBELLE_CAPTEUR, 
+          c.UNITE_MESURE
+        FROM 
+          CAPTEURS c
+        WHERE 
+          c.EMPLACEMENT = ?
+      `,
+        [pont.LIBELLE_PONT]
+      );
+
+      let capteurTemperature = null;
+      let capteurTDS = null;
+      let capteurProfondeur = null;
+
+      capteursPont.forEach((capteur) => {
+        if (capteur.TYPE_CAPTEUR === "temperature") {
+          capteurTemperature = capteur;
+        } else if (capteur.TYPE_CAPTEUR === "tds") {
+          capteurTDS = capteur;
+        } else if (capteur.TYPE_CAPTEUR === "profondeur") {
+          capteurProfondeur = capteur;
+        }
+      });
+
+      // RECUPÉRER LA DERNIÈRE MESURE POUR CHAQUE TYPE DE CAPTEUR
+      let mesureTemperature = null;
+      let mesureTDS = null;
+      let mesureProfondeur = null;
+
+      if (capteurTemperature) {
+        const [tempMesures] = await db.query(
+          `
+          SELECT VALEUR, DATE_MESURE
+          FROM MESURES_CAPTEURS
+          WHERE CAPTEUR_ID = ?
+          ORDER BY DATE_MESURE DESC
+          LIMIT 1
+        `,
+          [capteurTemperature.CAPTEUR_ID]
+        );
+
+        if (tempMesures.length > 0) {
+          mesureTemperature = {
+            valeur: tempMesures[0].VALEUR,
+            date_mesure: tempMesures[0].DATE_MESURE,
+            unite: capteurTemperature.UNITE_MESURE,
+          };
+        }
+      }
+
+      if (capteurTDS) {
+        const [tdsMesures] = await db.query(
+          `
+          SELECT VALEUR, DATE_MESURE
+          FROM MESURES_CAPTEURS
+          WHERE CAPTEUR_ID = ?
+          ORDER BY DATE_MESURE DESC
+          LIMIT 1
+        `,
+          [capteurTDS.CAPTEUR_ID]
+        );
+
+        if (tdsMesures.length > 0) {
+          mesureTDS = {
+            valeur: tdsMesures[0].VALEUR,
+            date_mesure: tdsMesures[0].DATE_MESURE,
+            unite: capteurTDS.UNITE_MESURE,
+          };
+        }
+      }
+
+      if (capteurProfondeur) {
+        const [profondeurMesures] = await db.query(
+          `
+          SELECT VALEUR, DATE_MESURE
+          FROM MESURES_CAPTEURS
+          WHERE CAPTEUR_ID = ?
+          ORDER BY DATE_MESURE DESC
+          LIMIT 1
+        `,
+          [capteurProfondeur.CAPTEUR_ID]
+        );
+
+        if (profondeurMesures.length > 0) {
+          mesureProfondeur = {
+            valeur: profondeurMesures[0].VALEUR,
+            date_mesure: profondeurMesures[0].DATE_MESURE,
+            unite: capteurProfondeur.UNITE_MESURE,
+          };
+        }
+      }
+
+      // DÉTERMINER LA DATE DE MESURE LA PLUS RÉCENTE
+      const datesMesure = [
+        mesureTemperature?.date_mesure,
+        mesureTDS?.date_mesure,
+        mesureProfondeur?.date_mesure,
+      ].filter(Boolean);
+
+      const dateMesurePlusRecente =
+        datesMesure.length > 0
+          ? new Date(Math.max(...datesMesure.map((d) => new Date(d).getTime())))
+          : null;
+
+      pontsAvecCapteurs.push({
+        pont_id: pont.PONT_ID,
+        libelle_pont: pont.LIBELLE_PONT,
+        adresse: pont.ADRESSE,
+
+        niveau_eau: mesureProfondeur ? mesureProfondeur.valeur : null,
+        unite_niveau: mesureProfondeur ? mesureProfondeur.unite : "cm",
+
+        temperature: mesureTemperature ? mesureTemperature.valeur : null,
+        unite_temperature: mesureTemperature ? mesureTemperature.unite : "°C",
+
+        humidite: mesureTDS ? mesureTDS.valeur : null,
+        unite_humidite: mesureTDS ? mesureTDS.unite : "ppm",
+
+        date_mesure: dateMesurePlusRecente,
+      });
+    }
+
+    // ENVOYER LA RÉPONSE
+    return res.status(200).json({
+      success: true,
+      ponts: pontsAvecCapteurs,
+    });
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des capteurs:",
+      error.message
+    );
+    return res.status(500).json({
+      success: false,
+      message: "Erreur: " + error.message,
+    });
+  }
 };
