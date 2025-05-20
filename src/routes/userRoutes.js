@@ -1,7 +1,7 @@
 import express from 'express';
 import { verifyToken } from '../middleware/verifyToken.js';
 import { 
-    GetAllAvailabilities, GetSensorValues, addBoat,
+    GetAllAvailabilities, addBoat,
     deleteBoat, getUserBateaux, getUserReservations,
     updateReservationStatus, getCreneaux, reserveCreneau 
     } from '../controllers/userController.js';
@@ -13,7 +13,6 @@ const router = express.Router();
   ║ ROUTES DE L'UTILISATEUR ║
   ╚═════════════════════════╝`
 router.get('/availabilities', verifyToken, GetAllAvailabilities);
-router.get('/sensor-values', verifyToken, GetSensorValues);
 router.post('/boats', verifyToken, addBoat);
 router.delete('/boats', verifyToken, deleteBoat);
 router.get('/boats', verifyToken, getUserBateaux);

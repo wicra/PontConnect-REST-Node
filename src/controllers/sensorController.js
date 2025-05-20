@@ -1,4 +1,3 @@
-import e from "express";
 import db from "../models/db.js";
 
 ` ╔═════════════════════════════════════════════╗
@@ -97,7 +96,7 @@ export const addMesureSensor = async (req, res) => {
 `;
 export const GetSensorValues = async (req, res) => {
   try {
-    // 1. RÉCUPÉRER TOUS LES PONTS
+    // RÉCUPÉRER TOUS LES PONTS
     const [ponts] = await db.query(`
       SELECT 
         p.PONT_ID, 
@@ -109,7 +108,7 @@ export const GetSensorValues = async (req, res) => {
         p.PONT_ID
     `);
 
-    // Si aucun pont n'est trouvé
+    // SI AUCUN PONT N'EST TROUVÉ
     if (ponts.length === 0) {
       return res.status(200).json({
         success: true,
@@ -117,12 +116,9 @@ export const GetSensorValues = async (req, res) => {
       });
     }
 
-    // 2. RÉCUPÉRER ET TRAITER LES DONNÉES DE CHAQUE PONT
+    // RÉCUPÉRER ET TRAITER LES DONNÉES DE CHAQUE PONT
     const pontsAvecCapteurs = [];
-
-    // Traiter chaque pont individuellement
     for (const pont of ponts) {
-      // Récupérer tous les capteurs associés à ce pont par son nom
       const [capteursPont] = await db.query(
         `
         SELECT 
@@ -138,12 +134,10 @@ export const GetSensorValues = async (req, res) => {
         [pont.LIBELLE_PONT]
       );
 
-      // Préparer les objets pour stocker les données des capteurs
       let capteurTemperature = null;
       let capteurTDS = null;
       let capteurProfondeur = null;
 
-      // Classer les capteurs par type
       capteursPont.forEach((capteur) => {
         if (capteur.TYPE_CAPTEUR === "temperature") {
           capteurTemperature = capteur;
@@ -154,7 +148,7 @@ export const GetSensorValues = async (req, res) => {
         }
       });
 
-      // Récupérer les dernières mesures pour chaque capteur trouvé
+      // RÉCUPÉRER LA DERNIÈRE MESURE POUR CHAQUE TYPE DE CAPTEUR
       let mesureTemperature = null;
       let mesureTDS = null;
       let mesureProfondeur = null;
@@ -222,7 +216,7 @@ export const GetSensorValues = async (req, res) => {
         }
       }
 
-      // Déterminer la date de mesure la plus récente parmi tous les capteurs
+      // DETERMINER LA DATE DE MESURE LA PLUS RÉCENTE
       let dateMesurePlusRecente = null;
 
       if (mesureTemperature?.date_mesure) {
@@ -246,7 +240,6 @@ export const GetSensorValues = async (req, res) => {
         dateMesurePlusRecente = mesureProfondeur.date_mesure;
       }
 
-      // Créer l'objet pont avec ses capteurs
       pontsAvecCapteurs.push({
         pont_id: pont.PONT_ID,
         libelle_pont: pont.LIBELLE_PONT,
@@ -265,7 +258,7 @@ export const GetSensorValues = async (req, res) => {
       });
     }
 
-    // 3. ENVOYER LA RÉPONSE
+    // ENVOYER LA RÉPONSE
     return res.status(200).json({
       success: true,
       ponts: pontsAvecCapteurs,
