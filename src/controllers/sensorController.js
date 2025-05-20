@@ -97,20 +97,19 @@ export const addMesureSensor = async (req, res) => {
 `;
 export const GetSensorValues = async (req, res) => {
   try {
-    // RÉCUPÉRER TOUS LES PONTS
+    // 1. RÉCUPÉRER TOUS LES PONTS
     const [ponts] = await db.query(`
       SELECT 
         p.PONT_ID, 
         p.LIBELLE_PONT, 
-        p.ADRESSE,
-        p.CAPTEUR_ID
+        p.ADRESSE
       FROM 
         PONTS p
       ORDER BY 
         p.PONT_ID
     `);
 
-    // AUCUN PONT TROUVÉ
+    // Si aucun pont n'est trouvé
     if (ponts.length === 0) {
       return res.status(200).json({
         success: true,
@@ -118,11 +117,12 @@ export const GetSensorValues = async (req, res) => {
       });
     }
 
-    // RÉCUPÉRER LES CAPTEURS ASSOCIÉS À CHAQUE PONT PAR EMPLACEMENT
+    // 2. RÉCUPÉRER ET TRAITER LES DONNÉES DE CHAQUE PONT
     const pontsAvecCapteurs = [];
 
-    // TRAITER CHAQUE PONT
+    // Traiter chaque pont individuellement
     for (const pont of ponts) {
+      // Récupérer tous les capteurs associés à ce pont par son nom
       const [capteursPont] = await db.query(
         `
         SELECT 
@@ -138,10 +138,12 @@ export const GetSensorValues = async (req, res) => {
         [pont.LIBELLE_PONT]
       );
 
+      // Préparer les objets pour stocker les données des capteurs
       let capteurTemperature = null;
       let capteurTDS = null;
       let capteurProfondeur = null;
 
+      // Classer les capteurs par type
       capteursPont.forEach((capteur) => {
         if (capteur.TYPE_CAPTEUR === "temperature") {
           capteurTemperature = capteur;
@@ -152,7 +154,7 @@ export const GetSensorValues = async (req, res) => {
         }
       });
 
-      // RECUPÉRER LA DERNIÈRE MESURE POUR CHAQUE TYPE DE CAPTEUR
+      // Récupérer les dernières mesures pour chaque capteur trouvé
       let mesureTemperature = null;
       let mesureTDS = null;
       let mesureProfondeur = null;
@@ -220,25 +222,35 @@ export const GetSensorValues = async (req, res) => {
         }
       }
 
-      // DÉTERMINER LA DATE DE MESURE LA PLUS RÉCENTE
-      const datesMesure = [
-        mesureTemperature?.date_mesure,
-        mesureTDS?.date_mesure,
-        mesureProfondeur?.date_mesure,
-      ].filter(Boolean);
+      // Déterminer la date de mesure la plus récente parmi tous les capteurs
+      let dateMesurePlusRecente = null;
 
-      const dateMesurePlusRecente =
-        datesMesure.length > 0
-          ? new Date(Math.max(...datesMesure.map((d) => new Date(d).getTime())))
-          : null;
+      if (mesureTemperature?.date_mesure) {
+        dateMesurePlusRecente = mesureTemperature.date_mesure;
+      }
 
+      if (
+        mesureTDS?.date_mesure &&
+        (!dateMesurePlusRecente ||
+          new Date(mesureTDS.date_mesure) > new Date(dateMesurePlusRecente))
+      ) {
+        dateMesurePlusRecente = mesureTDS.date_mesure;
+      }
+
+      if (
+        mesureProfondeur?.date_mesure &&
+        (!dateMesurePlusRecente ||
+          new Date(mesureProfondeur.date_mesure) >
+            new Date(dateMesurePlusRecente))
+      ) {
+        dateMesurePlusRecente = mesureProfondeur.date_mesure;
+      }
+
+      // Créer l'objet pont avec ses capteurs
       pontsAvecCapteurs.push({
         pont_id: pont.PONT_ID,
         libelle_pont: pont.LIBELLE_PONT,
         adresse: pont.ADRESSE,
-
-        niveau_eau: mesureProfondeur ? mesureProfondeur.valeur : null,
-        unite_niveau: mesureProfondeur ? mesureProfondeur.unite : "cm",
 
         temperature: mesureTemperature ? mesureTemperature.valeur : null,
         unite_temperature: mesureTemperature ? mesureTemperature.unite : "°C",
@@ -246,11 +258,14 @@ export const GetSensorValues = async (req, res) => {
         humidite: mesureTDS ? mesureTDS.valeur : null,
         unite_humidite: mesureTDS ? mesureTDS.unite : "ppm",
 
+        niveau_eau: mesureProfondeur ? mesureProfondeur.valeur : null,
+        unite_niveau: mesureProfondeur ? mesureProfondeur.unite : "cm",
+
         date_mesure: dateMesurePlusRecente,
       });
     }
 
-    // ENVOYER LA RÉPONSE
+    // 3. ENVOYER LA RÉPONSE
     return res.status(200).json({
       success: true,
       ponts: pontsAvecCapteurs,
