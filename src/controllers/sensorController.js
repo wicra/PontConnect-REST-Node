@@ -135,23 +135,28 @@ export const GetSensorValues = async (req, res) => {
       );
 
       let capteurTemperature = null;
-      let capteurTDS = null;
+      let capteurTurbinite = null;
       let capteurProfondeur = null;
+      let capteurHumidite = null;
 
       capteursPont.forEach((capteur) => {
         if (capteur.TYPE_CAPTEUR === "temperature") {
           capteurTemperature = capteur;
-        } else if (capteur.TYPE_CAPTEUR === "tds") {
-          capteurTDS = capteur;
+        } else if (capteur.TYPE_CAPTEUR === "Turbinite") {
+          capteurTurbinite = capteur;
         } else if (capteur.TYPE_CAPTEUR === "profondeur") {
           capteurProfondeur = capteur;
+        }
+        if (capteur.TYPE_CAPTEUR === "humidite") {
+          capteurHumidite = capteur;
         }
       });
 
       // RÉCUPÉRER LA DERNIÈRE MESURE POUR CHAQUE TYPE DE CAPTEUR
       let mesureTemperature = null;
-      let mesureTDS = null;
+      let mesureTurbinite = null;
       let mesureProfondeur = null;
+      let mesureHumidite = null;
 
       if (capteurTemperature) {
         const [tempMesures] = await db.query(
@@ -174,8 +179,8 @@ export const GetSensorValues = async (req, res) => {
         }
       }
 
-      if (capteurTDS) {
-        const [tdsMesures] = await db.query(
+      if (capteurTurbinite) {
+        const [TurbiniteMesures] = await db.query(
           `
           SELECT VALEUR, DATE_MESURE
           FROM MESURES_CAPTEURS
@@ -183,14 +188,14 @@ export const GetSensorValues = async (req, res) => {
           ORDER BY DATE_MESURE DESC
           LIMIT 1
         `,
-          [capteurTDS.CAPTEUR_ID]
+          [capteurTurbinite.CAPTEUR_ID]
         );
 
-        if (tdsMesures.length > 0) {
-          mesureTDS = {
-            valeur: tdsMesures[0].VALEUR,
-            date_mesure: tdsMesures[0].DATE_MESURE,
-            unite: capteurTDS.UNITE_MESURE,
+        if (TurbiniteMesures.length > 0) {
+          mesureTurbinite = {
+            valeur: TurbiniteMesures[0].VALEUR,
+            date_mesure: TurbiniteMesures[0].DATE_MESURE,
+            unite: capteurTurbinite.UNITE_MESURE,
           };
         }
       }
@@ -216,6 +221,27 @@ export const GetSensorValues = async (req, res) => {
         }
       }
 
+      if (capteurHumidite) {
+        const [humiditeMesures] = await db.query(
+          `
+          SELECT VALEUR, DATE_MESURE
+          FROM MESURES_CAPTEURS
+          WHERE CAPTEUR_ID = ?
+          ORDER BY DATE_MESURE DESC
+          LIMIT 1
+        `,
+          [capteurHumidite.CAPTEUR_ID]
+        );
+
+        if (humiditeMesures.length > 0) {
+          mesureHumidite = {
+            valeur: humiditeMesures[0].VALEUR,
+            date_mesure: humiditeMesures[0].DATE_MESURE,
+            unite: capteurHumidite.UNITE_MESURE,
+          };
+        }
+      }
+
       // DETERMINER LA DATE DE MESURE LA PLUS RÉCENTE
       let dateMesurePlusRecente = null;
 
@@ -224,11 +250,12 @@ export const GetSensorValues = async (req, res) => {
       }
 
       if (
-        mesureTDS?.date_mesure &&
+        mesureTurbinite?.date_mesure &&
         (!dateMesurePlusRecente ||
-          new Date(mesureTDS.date_mesure) > new Date(dateMesurePlusRecente))
+          new Date(mesureTurbinite.date_mesure) >
+            new Date(dateMesurePlusRecente))
       ) {
-        dateMesurePlusRecente = mesureTDS.date_mesure;
+        dateMesurePlusRecente = mesureTurbinite.date_mesure;
       }
 
       if (
@@ -240,6 +267,15 @@ export const GetSensorValues = async (req, res) => {
         dateMesurePlusRecente = mesureProfondeur.date_mesure;
       }
 
+      if (
+        mesureHumidite?.date_mesure &&
+        (!dateMesurePlusRecente ||
+          new Date(mesureHumidite.date_mesure) >
+            new Date(dateMesurePlusRecente))
+      ) {
+        dateMesurePlusRecente = mesureHumidite.date_mesure;
+      }
+
       pontsAvecCapteurs.push({
         pont_id: pont.PONT_ID,
         libelle_pont: pont.LIBELLE_PONT,
@@ -248,11 +284,14 @@ export const GetSensorValues = async (req, res) => {
         temperature: mesureTemperature ? mesureTemperature.valeur : null,
         unite_temperature: mesureTemperature ? mesureTemperature.unite : "°C",
 
-        humidite: mesureTDS ? mesureTDS.valeur : null,
-        unite_humidite: mesureTDS ? mesureTDS.unite : "ppm",
+        turbinite: mesureTurbinite ? mesureTurbinite.valeur : null,
+        unite_turbinite: mesureTurbinite ? mesureTurbinite.unite : "ppm",
 
         niveau_eau: mesureProfondeur ? mesureProfondeur.valeur : null,
         unite_niveau: mesureProfondeur ? mesureProfondeur.unite : "cm",
+
+        humidite: mesureHumidite ? mesureHumidite.valeur : null,
+        unite_humidite: mesureHumidite ? mesureHumidite.unite : "%",
 
         date_mesure: dateMesurePlusRecente,
       });
