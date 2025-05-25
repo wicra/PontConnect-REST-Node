@@ -11,15 +11,17 @@ INSERT INTO `CAPTEURS` (`CAPTEUR_ID`, `TYPE_CAPTEUR`, `LIBELLE_CAPTEUR`, `UNITE_
 (1, 'temperature', 'Capteur temperature', '°C', 'Pont de Dunkerque', 'actif'),
 (2, 'turbinite', 'Capteur turbinite', 'ppm', 'Pont de Dunkerque', 'actif'),
 (3, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Dunkerque', 'actif'),
-(4, 'humidite', 'Capteur humidite', 'cm', 'Pont de Dunkerque', 'actif'),
+(4, 'humidite', 'Capteur humidite', '%', 'Pont de Dunkerque', 'actif'),
 
 (5, 'temperature', 'Capteur temperature', '°C', 'Pont de Lille', 'actif'),
 (6, 'turbinite', 'Capteur humidite', 'ppm', 'Pont de Lille', 'actif'),
 (7, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Lille', 'actif'),
+(8, 'humidite', 'Capteur humidite', '%', 'Pont de Lille', 'actif'),
 
-(8, 'temperature', 'Capteur temperature', '°C', 'Pont de Paris', 'actif'),
-(9, 'turbinite', 'Capteur humidite', 'ppm', 'Pont de Paris', 'actif'),
-(10, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Paris', 'actif');
+(9, 'temperature', 'Capteur temperature', '°C', 'Pont de Paris', 'actif'),
+(10, 'turbinite', 'Capteur humidite', 'ppm', 'Pont de Paris', 'actif'),
+(11, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Paris', 'actif'),
+(12, 'humidite', 'Capteur humidite', '%', 'Pont de Paris', 'actif');
 
 -- `MESURES_CAPTEURS`
 INSERT INTO `MESURES_CAPTEURS` (`CAPTEUR_ID`, `VALEUR`, `DATE_MESURE`) VALUES
