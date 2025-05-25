@@ -9,22 +9,23 @@ INSERT INTO `DIRECTION_CRENEAU` (`DIRECTION_CRENEAU_ID`, `LIBELLE_DIRECTION_CREN
 -- CAPTEURS
 INSERT INTO `CAPTEURS` (`CAPTEUR_ID`, `TYPE_CAPTEUR`, `LIBELLE_CAPTEUR`, `UNITE_MESURE`, `EMPLACEMENT`, `STATUS`) VALUES
 (1, 'temperature', 'Capteur temperature', '°C', 'Pont de Dunkerque', 'actif'),
-(2, 'tds', 'Capteur humidite', 'ppm', 'Pont de Dunkerque', 'actif'),
+(2, 'turbinite', 'Capteur turbinite', 'ppm', 'Pont de Dunkerque', 'actif'),
 (3, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Dunkerque', 'actif'),
+(4, 'humidite', 'Capteur humidite', 'cm', 'Pont de Dunkerque', 'actif'),
 
-(4, 'temperature', 'Capteur temperature', '°C', 'Pont de Lille', 'actif'),
-(5, 'tds', 'Capteur humidite', 'ppm', 'Pont de Lille', 'actif'),
-(6, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Lille', 'actif');
+(5, 'temperature', 'Capteur temperature', '°C', 'Pont de Lille', 'actif'),
+(6, 'turbinite', 'Capteur humidite', 'ppm', 'Pont de Lille', 'actif'),
+(7, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Lille', 'actif'),
 
-(4, 'temperature', 'Capteur temperature', '°C', 'Pont de Paris', 'actif'),
-(5, 'tds', 'Capteur humidite', 'ppm', 'Pont de Paris', 'actif'),
-(9, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Paris', 'actif'),
+(8, 'temperature', 'Capteur temperature', '°C', 'Pont de Paris', 'actif'),
+(9, 'turbinite', 'Capteur humidite', 'ppm', 'Pont de Paris', 'actif'),
+(10, 'profondeur', 'Capteur niveau d\'eau', 'cm', 'Pont de Paris', 'actif');
 
 -- `MESURES_CAPTEURS`
 INSERT INTO `MESURES_CAPTEURS` (`CAPTEUR_ID`, `VALEUR`, `DATE_MESURE`) VALUES
 (1, 18.50, '2025-03-04 12:00:00'),
 (2, 19.25, '2025-03-04 18:00:00'),
-(3, 20.00, '2025-03-05 17:34:40'),
+(3, 20.00, '2025-03-05 17:34:40');
 
 -- `PERIODE_CRENEAU`
 INSERT INTO `PERIODE_CRENEAU` (`PERIODE_ID`, `LIBELLE_PERIODE`) VALUES
@@ -49,7 +50,7 @@ INSERT INTO `USERS` (`USER_ID`, `TYPE_USER_ID`, `USER_NAME`, `EMAIL`, `PASSWORD`
 -- `PONTS`
 INSERT INTO `PONTS` (`PONT_ID`, `CAPTEUR_ID`, `LIBELLE_PONT`, `ADRESSE`) VALUES
 (1, 1, 'Pont de Dunkerque', 'Quai des Hollandais'),
-(2, 2, 'Pont de Lille', 'Rue du Pont');
+(2, 2, 'Pont de Lille', 'Rue du Pont'),
 (3, 3, 'Pont de Paris', 'Rue du Pont');
 
 -- `HORAIRES_CRENEAUX`
