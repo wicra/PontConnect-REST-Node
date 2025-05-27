@@ -84,10 +84,10 @@ export const rateLimitRegister = rateLimit({
   ║   LIMITEUR D'AJOUT DE VALEURS CAPTEURS   ║
   ╚══════════════════════════════════════════╝
 `
-// 20s / 3 REQUÊTE
+// 20s / 4 REQUÊTE
 export const rateLimitaAddMesureSensor = rateLimit({
   windowMs: 20 * 1000,
-  max: 3,
+  max: 4,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
