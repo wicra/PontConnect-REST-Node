@@ -7,6 +7,8 @@ import sensorRoutes from "./src/routes/sensorRoutes.js";
 
 // CREATION DE L'APPLICATION EXPRESS
 const app = express();
+
+// ACCEPTER LES REQUÊTES VIA PROXY
 app.set("trust proxy", 1);
 
 // MIDDLEWARES

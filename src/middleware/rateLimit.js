@@ -1,8 +1,5 @@
 import rateLimit from 'express-rate-limit';
 
-// ACCEPTER LES REQUÊTES VIA PROXY
-app.set('trust proxy', 1);
-
 ` ╔══════════════════════════════════════╗
   ║    LIMITEUR DE TÂCHES UTILISATEUR    ║
   ╚══════════════════════════════════════╝
