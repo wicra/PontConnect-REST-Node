@@ -373,38 +373,49 @@ export const adminUpdateHoraireCreneau = async (req, res) => {
     }
 };
 
-` ╔════════════════════════════════════════════════════╗
-  ║ FONCTION POUR OBTENIR LES RESERVATIONS EN ATTENTE  ║
-  ╚════════════════════════════════════════════════════╝
+` ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║   FONCTION POUR OBTENIR LES RÉSERVATIONS EN ATTENTE SELON UN PONT DONNÉ    ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
 `
 export const getPendingReservations = async (req, res) => {
     try {
-        // REQUETE SQL POUR OBTENIR LES RESERVATIONS EN ATTENTE
+        // VÉRIFIER QUE LE PARAMÈTRE pont_id EST PRÉSENT
+        const pontId = req.query.pont_id;
+        if (!pontId) {
+            return res.status(400).json({
+                success: false,
+                message: "Paramètre 'pont_id' manquant"
+            });
+        }
+
+        // REQUÊTE SQL POUR OBTENIR LES RÉSERVATIONS EN ATTENTE POUR CE PONT
         const query = `
             SELECT 
                 CONCAT(r.USER_ID, '_', r.PONT_ID, '_', r.BATEAU_ID, '_', r.STATUS_ID) AS reservation_id,
                 r.USER_ID,
+                u.NOM AS user_nom,
+                u.PRENOM AS user_prenom,
                 r.PONT_ID, 
-                r.BATEAU_ID,
-                r.STATUS_ID,
-                r.HORAIRES_ID, 
-                r.DATE_RESERVATION,
                 p.LIBELLE_PONT AS pont_name,
-                dc.LIBELLE_DIRECTION_CRENEAU AS direction,
+                r.BATEAU_ID,
                 b.LIBELLE_BATEAU AS bateau_name,
                 b.IMMATRICULATION AS bateau_immatriculation,
                 b.HAUTEUR_MAX AS bateau_hauteur,
+                r.STATUS_ID,
                 s.LIBELLE_STATUS AS statut,
+                r.HORAIRES_ID, 
                 pc.LIBELLE_PERIODE AS libelle,
+                dc.LIBELLE_DIRECTION_CRENEAU AS direction,
                 TIME_FORMAT(hc.HORAIRE_DEPART, '%H:%i') AS heure_debut,
                 TIME_FORMAT(IFNULL(hc.HORAIRE_PASSAGE3, hc.HORAIRE_PASSAGE1), '%H:%i') AS heure_fin,
-                CONCAT('USER #', r.USER_ID) AS user_name,
+                r.DATE_RESERVATION,
                 (
                     SELECT COUNT(*) 
                     FROM RESERVATION r2 
                     WHERE r2.HORAIRES_ID = r.HORAIRES_ID 
                       AND DATE(r2.DATE_RESERVATION) = DATE(r.DATE_RESERVATION) 
                       AND r2.STATUS_ID = 1
+                      AND r2.PONT_ID = r.PONT_ID
                 ) AS confirmed_count,
                 r.CAPACITE_MAX AS capacite_max
             FROM 
@@ -421,18 +432,22 @@ export const getPendingReservations = async (req, res) => {
                 PERIODE_CRENEAU pc ON hc.PERIODE_ID = pc.PERIODE_ID
             JOIN
                 DIRECTION_CRENEAU dc ON hc.DIRECTION_CRENEAU_ID = dc.DIRECTION_CRENEAU_ID
+            JOIN
+                USERS u ON r.USER_ID = u.USER_ID
             WHERE 
                 r.STATUS_ID = 2
                 AND r.DATE_RESERVATION >= CURDATE()
+                AND r.PONT_ID = ?
             ORDER BY 
                 r.DATE_RESERVATION ASC, hc.HORAIRE_DEPART ASC
         `;
         
-        const [reservations] = await db.query(query);
+        const [reservations] = await db.query(query, [pontId]);
         
-        // FORMATER LES DONNEES
+        // FORMATER LES DONNÉES
         const formattedReservations = reservations.map(r => ({
             reservation_id: r.reservation_id,
+            pont_id: r.PONT_ID,
             pont_name: r.pont_name,
             direction: r.direction,
             bateau_name: r.bateau_name,
@@ -441,7 +456,9 @@ export const getPendingReservations = async (req, res) => {
             libelle: r.libelle,
             heure_debut: r.heure_debut,
             heure_fin: r.heure_fin,
-            user_name: r.user_name,
+            user_id: r.USER_ID,
+            user_nom: r.user_nom,
+            user_prenom: r.user_prenom,
             reservation_date: new Date(r.DATE_RESERVATION).toISOString().split('T')[0],
             statut: r.statut.toLowerCase(),
             confirmed_count: Number(r.confirmed_count),
@@ -449,7 +466,7 @@ export const getPendingReservations = async (req, res) => {
             horaires_id: r.HORAIRES_ID
         }));
         
-        // RETOURNER LES DONNEES
+        // RETOURNER LES DONNÉES
         return res.status(200).json({
             success: true,
             reservations: formattedReservations
