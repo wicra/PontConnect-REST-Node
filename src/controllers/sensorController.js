@@ -142,7 +142,7 @@ export const GetSensorValues = async (req, res) => {
       capteursPont.forEach((capteur) => {
         if (capteur.TYPE_CAPTEUR === "temperature") {
           capteurTemperature = capteur;
-        } else if (capteur.TYPE_CAPTEUR === "Turbinite") {
+        } else if (capteur.TYPE_CAPTEUR === "turbinite") {
           capteurTurbinite = capteur;
         } else if (capteur.TYPE_CAPTEUR === "profondeur") {
           capteurProfondeur = capteur;
