@@ -1,6 +1,6 @@
 {
   "name": "pontconnect-rest-node",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",

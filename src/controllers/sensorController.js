@@ -1,5 +1,6 @@
 import db from "../models/db.js";
 
+
 ` ╔═════════════════════════════════════════════╗
   ║     FONCTIONS AJOUT DE MESURE CAPTEUR       ║
   ╚═════════════════════════════════════════════╝
@@ -7,9 +8,7 @@ import db from "../models/db.js";
 export const addMesureSensor = async (req, res) => {
 
   // LIMITATION D'ACCÈS AUX CAPTEURS
-  const userCapteur = process.env.CAPTEUR_USER_EMAIL;
-
-  if (!req.user || req.user.email !== userCapteur) {
+  if (!req.user || req.user.type_user_id !== 1) {
     return res.status(403).json({
       success: false,
       message: "Vous n'êtes pas autorisé à ajouter des mesures.",
