@@ -348,8 +348,7 @@ export const getUserReservations = async (req, res) => {
     console.error("Erreur SQL dans getUserReservations:", error.message);
     return res.status(500).json({
       success: false,
-      message:
-        "Erreur lors de la récupération des réservations: " + error.message,
+      message: "Erreur lors de la récupération des réservations: " + error.message,
     });
   }
 };
@@ -707,22 +706,24 @@ export const getCreneaux = async (req, res) => {
 `;
 export const reserveCreneau = async (req, res) => {
   try {
+    // RÉCUPÉRATION DE L'ID UTILISATEUR DEPUIS LE TOKEN
     const user_id = req.user.id;
-    const { creneau_id, bateau_id, reservation_date } = req.body;
 
-    if (!creneau_id || !bateau_id || !reservation_date) {
+    // RÉCUPÉRATION DES PARAMÈTRES DE LA REQUÊTE
+    const { creneau_id, bateau_id, reservation_date, pont_id } = req.body;
+
+    // VÉRIFICATION DES PARAMÈTRES OBLIGATOIRES
+    if (!creneau_id || !bateau_id || !reservation_date || !pont_id) {
       return res.status(400).json({
         success: false,
-        message: "Paramètres manquants dans la requête",
+        message: "Paramètres manquants dans la requête (creneau_id, bateau_id, reservation_date, pont_id)",
       });
     }
 
-    // RECUPÉRER LES DONNÉES DE LA REQUÊTE
-    const pont_id = 1; // Valeur fixe pour simplifier
-    const status_id = 2; // Demande en attente par defaut (ID 2)
-    const capacite_max = 5; // Valeur fixe
+    const status_id = 2; // Statut "en attente" par défaut (ID 2)
+    const capacite_max = 5; // Capacité maximale par créneau
 
-    // ETAPE 1: VÉRIFIER SI UNE RÉSERVATION IDENTIQUE EXISTE
+    // 1. VÉRIFIER SI UNE RÉSERVATION IDENTIQUE EXISTE DÉJÀ
     const [duplicateCheck] = await db.execute(
       `SELECT RESERVATION_ID
        FROM RESERVATION 
@@ -742,42 +743,43 @@ export const reserveCreneau = async (req, res) => {
       });
     }
 
-    // ETAPE 2: VÉRIFIER SI LE BATEAU N'EST PAS DÉJÀ RÉSERVÉ SUR CE CRÉNEAU ET CETTE DATE
+    // 2. VÉRIFIER SI LE BATEAU N'EST PAS DÉJÀ RÉSERVÉ SUR CE CRÉNEAU, CETTE DATE ET CE PONT
     const [checkBoatResults] = await db.execute(
       `SELECT RESERVATION_ID
        FROM RESERVATION 
        WHERE BATEAU_ID = ? 
          AND HORAIRES_ID = ? 
-         AND DATE(DATE_RESERVATION) = ?`,
-      [bateau_id, creneau_id, reservation_date]
+         AND DATE(DATE_RESERVATION) = ?
+         AND PONT_ID = ?`,
+      [bateau_id, creneau_id, reservation_date, pont_id]
     );
 
     if (checkBoatResults.length > 0) {
       return res.status(400).json({
         success: false,
-        message:
-          "Ce bateau a déjà une réservation pour ce créneau à cette date",
+        message: "Ce bateau a déjà une réservation pour ce créneau à cette date sur ce pont",
       });
     }
 
-    // ETAPE 3: VÉRIFIER LA CAPACITÉ MAXIMALE
+    // 3. VÉRIFIER LA CAPACITÉ MAXIMALE POUR CE CRÉNEAU, CETTE DATE ET CE PONT
     const [checkCapacityResults] = await db.execute(
       `SELECT COUNT(*) AS total 
        FROM RESERVATION 
        WHERE HORAIRES_ID = ? 
          AND DATE(DATE_RESERVATION) = ?
+         AND PONT_ID = ?
          AND STATUS_ID IN (1, 2)`,
-      [creneau_id, reservation_date]
+      [creneau_id, reservation_date, pont_id]
     );
 
     if (checkCapacityResults[0].total >= capacite_max) {
       return res.status(400).json({
         success: false,
-        message: "Ce créneau est complet pour cette date (maximum 5 bateaux)",
+        message: "Ce créneau est complet pour cette date et ce pont (maximum 5 bateaux)",
       });
     }
 
-    // ETAPE 4: INSÉRER LA NOUVELLE RÉSERVATION
+    // 4. INSÉRER LA NOUVELLE RÉSERVATION
     const [result] = await db.execute(
       `INSERT INTO RESERVATION 
        (USER_ID, PONT_ID, BATEAU_ID, STATUS_ID, HORAIRES_ID, DATE_RESERVATION, CAPACITE_MAX) 
@@ -793,7 +795,7 @@ export const reserveCreneau = async (req, res) => {
       ]
     );
 
-    // VÉRIFIER SI L'INSERTION A RÉUSSI
+    // 5. VÉRIFIER SI L'INSERTION A RÉUSSI
     if (result.affectedRows > 0) {
       return res.status(201).json({
         success: true,
@@ -807,6 +809,7 @@ export const reserveCreneau = async (req, res) => {
       });
     }
   } catch (error) {
+    // GESTION DES ERREURS TECHNIQUES
     console.error("Exception dans reserveCreneau:", error);
     return res.status(500).json({
       success: false,
