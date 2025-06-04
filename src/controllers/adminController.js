@@ -394,7 +394,6 @@ export const getPendingReservations = async (req, res) => {
                 CONCAT(r.USER_ID, '_', r.PONT_ID, '_', r.BATEAU_ID, '_', r.STATUS_ID) AS reservation_id,
                 r.USER_ID,
                 u.USER_NAME AS user_nom,
-                NULL AS user_prenom,
                 r.PONT_ID, 
                 p.LIBELLE_PONT AS pont_name,
                 r.BATEAU_ID,
@@ -458,7 +457,6 @@ export const getPendingReservations = async (req, res) => {
             heure_fin: r.heure_fin,
             user_id: r.USER_ID,
             user_nom: r.user_nom,
-            user_prenom: null, // champ inexistant dans la base
             reservation_date: new Date(r.DATE_RESERVATION).toISOString().split('T')[0],
             statut: r.statut ? r.statut.toLowerCase() : '',
             confirmed_count: Number(r.confirmed_count),
