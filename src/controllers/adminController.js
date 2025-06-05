@@ -478,3 +478,75 @@ export const getPendingReservations = async (req, res) => {
         });
     }
 };
+
+` ╔════════════════════════════════════╗
+  ║      CONTROLE OUVERTURE PONT       ║
+  ╚════════════════════════════════════╝
+`
+export const updatePontStatus = async (req, res) => {
+  try {
+    // VERIFICATION DE L'UTILISATEUR ET DE SON TYPE
+    if (!req.user || req.user.type_user_id !== 1) {
+      return res.status(403).json({
+        success: false,
+        message: "Accès réservé aux administrateurs"
+      });
+    }
+
+    const pontId = req.body.pont_id;
+    const status = req.body.status;
+    const allowedStatus = ["ouvert", "ferme", "en_cours"];
+
+    // SI AUCUN PONT_ID N'EST FOURNI, ON RENVOIE LA LISTE DES PONTS DISPONIBLES
+    if (!pontId) {
+      const [ponts] = await db.query(
+        "SELECT PONT_ID, LIBELLE_PONT, ADRESSE, STATUS_PONT FROM PONTS ORDER BY LIBELLE_PONT ASC"
+      );
+      return res.json({
+        success: true,
+        ponts: ponts
+      });
+    }
+
+    // VERIFICATION DES PARAMETRES
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Paramètre 'status' requis.",
+      });
+    }
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Statut invalide. Valeurs possibles : ouvert, ferme, en_cours.",
+      });
+    }
+
+    // REQUETE POUR METTRE A JOUR LE STATUT DU PONT
+    const [result] = await db.execute(
+      "UPDATE PONTS SET STATUS_PONT = ? WHERE PONT_ID = ?",
+      [status, pontId]
+    );
+
+    // VERIFIER SI LA MISE A JOUR A ETE EFFECTUEE
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Pont non trouvé.",
+      });
+    }
+    return res.json({
+      success: true,
+      message: `Statut du pont mis à jour en '${status}'.`,
+      user_id: req.user.user_id
+    });
+  } catch (error) {
+    console.error("Erreur dans updatePontStatus:", error.message);
+    return res.status(500).json({
+      success: false,
+      message:
+        "Erreur lors de la mise à jour du statut du pont: " + error.message,
+    });
+  }
+};

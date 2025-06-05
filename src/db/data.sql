@@ -50,10 +50,10 @@ INSERT INTO `USERS` (`USER_ID`, `TYPE_USER_ID`, `USER_NAME`, `EMAIL`, `PASSWORD`
 (1, 1, 'admin', 'admin@gmail.com', '6ed645ef0e1abea1bf1e4e935ff04f9e18d39812387f63cda3415b46240f0405', '2025-03-07 16:49:48', '2025-03-17 21:25:16');
 
 -- `PONTS`
-INSERT INTO `PONTS` (`PONT_ID`, `CAPTEUR_ID`, `LIBELLE_PONT`, `ADRESSE`) VALUES
-(1, 1, 'Pont de Dunkerque', 'Quai des Hollandais'),
-(2, 2, 'Pont de Lille', 'Rue du Pont'),
-(3, 3, 'Pont de Paris', 'Rue du Pont');
+INSERT INTO `PONTS` (`PONT_ID`, `CAPTEUR_ID`, `LIBELLE_PONT`, `ADRESSE`, `STATUS_PONT`) VALUES
+(1, 1, 'Pont de Dunkerque', 'Quai des Hollandais', 'ferme'),
+(2, 2, 'Pont de Lille', 'Rue du Pont', 'ferme'),
+(3, 3, 'Pont de Paris', 'Rue du Pont', 'stop');
 
 -- `HORAIRES_CRENEAUX`
 INSERT INTO `HORAIRES_CRENEAUX` (`HORAIRES_ID`, `PERIODE_ID`, `DIRECTION_CRENEAU_ID`, `HORAIRE_DEPART`, `HORAIRE_PASSAGE1`, `HORAIRE_PASSAGE2`, `HORAIRE_PASSAGE3`) VALUES
