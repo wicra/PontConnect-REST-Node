@@ -495,7 +495,7 @@ export const updatePontStatus = async (req, res) => {
 
     const pontId = req.body.pont_id;
     const status = req.body.status;
-    const allowedStatus = ["ouvert", "ferme", "en_cours"];
+    const allowedStatus = ["ouvert", "ferme", "stop"];
 
     // SI AUCUN PONT_ID N'EST FOURNI, ON RENVOIE LA LISTE DES PONTS DISPONIBLES
     if (!pontId) {
