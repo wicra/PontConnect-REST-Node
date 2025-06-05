@@ -1,8 +1,8 @@
 import express from 'express';
 import { verifyToken } from '../middleware/verifyToken.js';
 import { 
-    adminAddHoraireCreneau,adminDeleteHoraireCreneau,adminGetFormDataHorairesCreneaux,
-    adminGetHorairesCreneaux,adminUpdateHoraireCreneau,getPendingReservations
+    adminAddHoraireCreneau, adminDeleteHoraireCreneau, adminGetFormDataHorairesCreneaux,
+    adminGetHorairesCreneaux, adminUpdateHoraireCreneau, getPendingReservations
     } from '../controllers/adminController.js';
 import { updatePontStatus } from '../controllers/adminController.js';
 
